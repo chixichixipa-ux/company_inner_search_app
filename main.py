@@ -22,9 +22,12 @@ def run():
 		import app as _app
 		_app.main()
 	except Exception:
-		# Fallback: keep a minimal placeholder so the module still works
-		st.title("Placeholder App")
-		st.write("Streamlit is available — this is a minimal placeholder app.")
+		# Show diagnostic info to help debug deployment issues
+		import traceback
+		st.title("Application failed to start")
+		st.error("An error occurred while importing or running the app. See details below.")
+		tb = traceback.format_exc()
+		st.code(tb, language=None)
 
 
 if __name__ == "__main__":
