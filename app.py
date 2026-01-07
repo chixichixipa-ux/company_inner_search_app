@@ -12,6 +12,12 @@ def _local_css():
         .user {background: #e6f2ff; padding:12px; border-radius:12px; margin:8px 0;}
         .bot {background: #f1f8e9; padding:12px; border-radius:12px; margin:8px 0;}
         .sidebar-note{background:#f3f4f6;border-left:4px solid #3b82f6;padding:10px;border-radius:6px;margin-bottom:8px}
+        .top-welcome{background:#e6ffed;border-left:6px solid #16a34a;padding:14px;border-radius:8px;margin-bottom:12px}
+        .top-tip{background:#fff7ed;border-left:6px solid #f59e0b;padding:12px;border-radius:8px;margin-bottom:18px}
+        .result-top{background:#e6ffed;border-left:6px solid #16a34a;padding:12px;border-radius:8px;margin-bottom:8px}
+        .candidate{background:#eef2ff;border-left:6px solid #3b82f6;padding:10px;border-radius:6px;margin:6px 0}
+        .input-row {display:flex; gap:8px; align-items:center}
+        .input-box {background:#f3f4f6;padding:12px;border-radius:8px;width:100%;}
         </style>
         """,
         unsafe_allow_html=True,
@@ -52,8 +58,9 @@ def main():
     # Main content
     with col2:
         st.markdown(f"# {ct.APP_TITLE}")
-        st.success(ct.WELCOME_MESSAGE)
-        st.warning(ct.TIP_MESSAGE)
+        # custom styled welcome and tip boxes to match mockup
+        st.markdown(f"<div class='top-welcome'>{ct.WELCOME_MESSAGE}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='top-tip'>{ct.TIP_MESSAGE}</div>", unsafe_allow_html=True)
 
         if "chat_history" not in st.session_state:
             st.session_state.chat_history = []
@@ -110,35 +117,36 @@ def main():
                     st.markdown(f"<div class='bot'><b>bot:</b> {bot_content}</div>", unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
-        # Input area
+        # Input area styled
         st.markdown("---")
-        st.text_input("", value="", placeholder="こちらからメッセージを送信してください。", key="user_input")
+        col_input, col_send = st.columns([9,1])
+        with col_input:
+            st.text_input("", value="", placeholder="こちらからメッセージを送信してください。", key="user_input")
+        with col_send:
+            def _handle_send():
+                user_input_val = st.session_state.get("user_input", "")
+                if not user_input_val.strip():
+                    st.warning("入力が空です。メッセージを入力してください。")
+                    return
+                st.session_state.chat_history.append({"role": "user", "text": user_input_val})
+                with st.spinner("処理中..."):
+                    try:
+                        mode = st.session_state.get("mode") or purpose
+                        if mode == "社内問い合わせ":
+                            resp = utils.get_llm_response(
+                                user_input_val,
+                                mode,
+                                retriever=st.session_state.get("retriever"),
+                                chat_history=st.session_state.get("chat_history"),
+                            )
+                        else:
+                            resp = utils.process_input(user_input_val, mode)
+                    except Exception:
+                        resp = "処理中にエラーが発生しました。時間を置いて再度お試しください。"
+                st.session_state.chat_history.append({"role": "bot", "text": resp})
+                st.session_state["user_input"] = ""
 
-        def _handle_send():
-            user_input_val = st.session_state.get("user_input", "")
-            if not user_input_val.strip():
-                st.warning("入力が空です。メッセージを入力してください。")
-                return
-            st.session_state.chat_history.append({"role": "user", "text": user_input_val})
-            with st.spinner("処理中..."):
-                try:
-                    mode = st.session_state.get("mode") or purpose
-                    if mode == "社内問い合わせ":
-                        resp = utils.get_llm_response(
-                            user_input_val,
-                            mode,
-                            retriever=st.session_state.get("retriever"),
-                            chat_history=st.session_state.get("chat_history"),
-                        )
-                    else:
-                        resp = utils.process_input(user_input_val, mode)
-                except Exception:
-                    resp = "処理中にエラーが発生しました。時間を置いて再度お試しください。"
-            st.session_state.chat_history.append({"role": "bot", "text": resp})
-            # clear input for next run
-            st.session_state["user_input"] = ""
-
-        st.button("送信", on_click=_handle_send)
+            st.button("送信", on_click=_handle_send)
 
 
 if __name__ == "__main__":
