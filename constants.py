@@ -1,21 +1,28 @@
 
 
+"""
+constants.py
+Application-wide configuration and UI constants
+"""
+
 # LangChain / LLM defaults
 MODEL = "gpt-3.5-turbo"
 TEMPERATURE = 0.0
 
-# Mode identifiers
+# UI / mode identifiers
 ANSWER_MODE_1 = "社内文書検索"
+ANSWER_MODE_2 = "社内問い合わせ"
+PURPOSES = [ANSWER_MODE_1, ANSWER_MODE_2]
 
-# System prompt templates (simple defaults;適宜編集してください)
+# System prompt templates (simple defaults; 適宜編集してください)
 SYSTEM_PROMPT_CREATE_INDEPENDENT_TEXT = (
-	"会話履歴に依存せず、独立して理解できるように入力文を整形してください。"
+    "会話履歴に依存せず、独立して理解できるように入力文を整形してください。"
 )
 SYSTEM_PROMPT_DOC_SEARCH = (
-	"あなたは社内文書を参照して、関連文書の所在や抜粋を示すアシスタントです。簡潔に答えてください。"
+    "あなたは社内文書を参照して、関連文書の所在や抜粋を示すアシスタントです。簡潔に答えてください。"
 )
 SYSTEM_PROMPT_INQUIRY = (
-	"あなたは社内ドキュメントを参照して、簡潔で正確に回答するアシスタントです。"
+    "あなたは社内ドキュメントを参照して、簡潔で正確に回答するアシスタントです。"
 )
 
 # UI icons / messages
@@ -36,6 +43,7 @@ except Exception:
         TextLoader = None
         CSVLoader = None
 
+
 def _missing_loader(name):
     def _fn(path=None, *args, **kwargs):
         raise ImportError(
@@ -48,19 +56,16 @@ def _missing_loader(name):
 # 共通変数の定義
 ############################################################
 
-# ==========================================
 # 画面表示系
-# ==========================================
 APP_NAME = "社内情報特化型生成AI検索アプリ"
 APP_TITLE = APP_NAME
-ANSWER_MODE_1 = "社内文書検索"
-ANSWER_MODE_2 = "社内問い合わせ"
 CHAT_INPUT_HELPER_TEXT = "こちらからメッセージを送信してください。"
-DOC_SOURCE_ICON = ":material/description: "
-LINK_SOURCE_ICON = ":material/link: "
 WARNING_ICON = ":material/warning:"
 ERROR_ICON = ":material/error:"
 SPINNER_TEXT = "回答生成中..."
+
+WELCOME_MESSAGE = "ようこそ。社内文書の検索や問い合わせができます。"
+TIP_MESSAGE = "利用目的を選択してから、メッセージを送信してください。"
 
 
 LOG_DIR_PATH = "./logs"
@@ -69,6 +74,7 @@ LOG_FILE = "application.log"
 APP_BOOT_MESSAGE = "アプリが起動されました。"
 
 
+# Application defaults (override as needed)
 MODEL = "gpt-4o-mini"
 TEMPERATURE = 0.5
 CHUNK_SIZE = 500
@@ -90,7 +96,9 @@ WEB_URL_LOAD_TARGETS = [
 ]
 
 
-SYSTEM_PROMPT_CREATE_INDEPENDENT_TEXT = "会話履歴と最新の入力をもとに、会話履歴なしでも理解できる独立した入力テキストを生成してください。"
+SYSTEM_PROMPT_CREATE_INDEPENDENT_TEXT = (
+    "会話履歴と最新の入力をもとに、会話履歴なしでも理解できる独立した入力テキストを生成してください。"
+)
 
 SYSTEM_PROMPT_DOC_SEARCH = """
     あなたは社内の文書検索アシスタントです。
@@ -121,10 +129,8 @@ SYSTEM_PROMPT_INQUIRY = """
 """
 
 
-
 INQUIRY_NO_MATCH_ANSWER = "回答に必要な情報が見つかりませんでした。"
 NO_DOC_MATCH_ANSWER = "該当資料なし"
-
 
 
 COMMON_ERROR_MESSAGE = "このエラーが繰り返し発生する場合は、管理者にお問い合わせください。"
