@@ -316,6 +316,14 @@ def process_input(text: str, purpose: str = "社内文書検索") -> str:
     # If the user selected document search, return locations/snippets instead of calling LLM
     if purpose == "社内文書検索":
         if not matched:
+            # helpful debug info: show how many docs are loaded and some names
+            if docs:
+                names = [n for n,_ in docs][:5]
+                names_str = ", ".join(names)
+                return (
+                    f"関連する社内文書が見つかりませんでした。キーワードを変えて再検索してください。\n"
+                    f"（読み込まれている文書: {len(docs)} 件。先頭: {names_str}）"
+                )
             return "関連する社内文書が見つかりませんでした。キーワードを変えて再検索してください。"
 
         results = []
