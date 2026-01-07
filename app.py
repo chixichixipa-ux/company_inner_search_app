@@ -80,27 +80,33 @@ def main():
 
         # Input area
         st.markdown("---")
-        user_input = st.text_input("", value="", placeholder="こちらからメッセージを送信してください。", key="user_input")
+        st.text_input("", value="", placeholder="こちらからメッセージを送信してください。", key="user_input")
 
-        send = st.button("送信")
-        if send:
-            if not user_input.strip():
+        def _handle_send():
+            user_input_val = st.session_state.get("user_input", "")
+            if not user_input_val.strip():
                 st.warning("入力が空です。メッセージを入力してください。")
-            else:
-                st.session_state.chat_history.append({"role": "user", "text": user_input})
-                with st.spinner("処理中..."):
-                    # Use different handlers depending on purpose
-                    try:
-                        if purpose == "社内問い合わせ":
-                            # Try to use LangChain-aware helper if available
-                            resp = utils.get_llm_response(user_input, purpose, retriever=st.session_state.get("retriever"), chat_history=st.session_state.chat_history)
-                        else:
-                            resp = utils.process_input(user_input, purpose)
-                    except Exception:
-                        resp = "処理中にエラーが発生しました。時間を置いて再度お試しください。"
-                st.session_state.chat_history.append({"role": "bot", "text": resp})
-                # clear input
-                st.session_state.user_input = ""
+                return
+            st.session_state.chat_history.append({"role": "user", "text": user_input_val})
+            with st.spinner("処理中..."):
+                try:
+                    mode = st.session_state.get("mode") or purpose
+                    if mode == "社内問い合わせ":
+                        resp = utils.get_llm_response(
+                            user_input_val,
+                            mode,
+                            retriever=st.session_state.get("retriever"),
+                            chat_history=st.session_state.get("chat_history"),
+                        )
+                    else:
+                        resp = utils.process_input(user_input_val, mode)
+                except Exception:
+                    resp = "処理中にエラーが発生しました。時間を置いて再度お試しください。"
+            st.session_state.chat_history.append({"role": "bot", "text": resp})
+            # clear input for next run
+            st.session_state["user_input"] = ""
+
+        st.button("送信", on_click=_handle_send)
 
 
 if __name__ == "__main__":
