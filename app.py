@@ -1,5 +1,6 @@
 import streamlit as st
 import utils
+import re
 import constants as ct
 
 
@@ -68,10 +69,12 @@ def main():
                 if isinstance(bot_content, dict) and bot_content.get("type") == "search_results":
                     st.markdown("<div class='bot'><b>bot:</b></div>", unsafe_allow_html=True)
                     st.markdown(f"**{bot_content.get('message')}**")
-                    for r in bot_content.get("results", []):
+                    for idx, r in enumerate(bot_content.get("results", [])):
                         with st.expander(f"{r['name']} — {r['rel_path']}"):
                             st.write(r['snippet'] + "...")
-                            if st.button(f"全文を表示: {r['name']}", key=f"show_{r['name']}"):
+                            safe = re.sub(r"[^0-9a-zA-Z_]", "_", r['name'])
+                            btn_key = f"show_{idx}_{safe}"
+                            if st.button(f"全文を表示: {r['name']}", key=btn_key):
                                 full = utils.get_full_document(r['name'])
                                 st.code(full, language=None)
                 else:
