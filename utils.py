@@ -218,9 +218,14 @@ def build_error_message(message: str) -> str:
 def get_llm_response(chat_message: str, purpose: str = "社内問い合わせ", retriever=None, chat_history: list = None) -> str:
     """Obtain a response from an LLM.
 
-    Uses the lightweight fallback path: build a simple context from `retriever` when provided
-    and call `call_llm`. This avoids requiring LangChain as a dependency.
+    Behavior:
+    - If LangChain's `ChatOpenAI` is available, use it to generate an answer (simple message-based call).
+    - Otherwise, fall back to the lightweight `call_llm` path used when LangChain is not installed.
+
+    This function avoids hard failures when LangChain is absent, while enabling richer LLM
+    behavior when the package is installed.
     """
+    # Build simple matched docs from retriever if provided (used by fallback or for prompt enrichment)
     matched = []
     if retriever is not None:
         try:
@@ -232,6 +237,56 @@ def get_llm_response(chat_message: str, purpose: str = "社内問い合わせ", 
         except Exception:
             matched = []
 
+    # Try to use LangChain's ChatOpenAI (several package names/paths exist across versions)
+    try:
+        try:
+            # new canonical import in many langchain versions
+            from langchain.chat_models import ChatOpenAI
+        except Exception:
+            # some environments/packages expose a different module name
+            from langchain_openai import ChatOpenAI  # type: ignore
+
+        # construct a lightweight messages sequence
+        system = getattr(ct, "SYSTEM_PROMPT_INQUIRY", "あなたは社内ドキュメントを参照して、簡潔で正確に回答するアシスタントです。")
+        messages = [
+            {"role": "system", "content": system},
+            {"role": "user", "content": chat_message},
+        ]
+
+        llm = ChatOpenAI(model_name=getattr(ct, "MODEL", "gpt-3.5-turbo"), temperature=getattr(ct, "TEMPERATURE", 0.0))
+
+        # Different langchain versions expose different call styles; handle common ones
+        try:
+            out = llm(messages)
+            if isinstance(out, str):
+                return out.strip()
+            # try to extract content from common shapes
+            gen = getattr(out, "generations", None)
+            if gen:
+                try:
+                    return gen[0][0].text.strip()
+                except Exception:
+                    pass
+            content = getattr(out, "content", None)
+            if content:
+                return content.strip()
+        except Exception:
+            # fallback to ChatOpenAI.chat or .generate interfaces
+            try:
+                resp = llm.chat(messages)  # type: ignore
+                # resp may contain choices/messages
+                try:
+                    return resp.choices[0].message.content.strip()
+                except Exception:
+                    return str(resp)
+            except Exception:
+                pass
+
+    except Exception:
+        # LangChain not available or call failed — continue to fallback
+        pass
+
+    # Final fallback: use existing simple call_llm implementation
     return call_llm(chat_message, matched, purpose)
 
 
