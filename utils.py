@@ -79,20 +79,41 @@ def search_documents(query: str, docs: List[Tuple[str, str]], top_k: int = 3) ->
 
     Replace with embedding-based retrieval for production.
     """
+    import re
     query = (query or "").lower().strip()
     if not query:
         return []
+    # tokenization: prefer kanji-only sequences for Japanese queries, also include kana and ascii tokens
+    kanji_tokens = re.findall(r"[\u4E00-\u9FFF]+", query)
+    kana_tokens = re.findall(r"[\u3040-\u309F\u30A0-\u30FF]+", query)
+    ascii_tokens = [t for t in re.split(r"\s+", query) if t]
+    tokens = list(dict.fromkeys(kanji_tokens + ascii_tokens + kana_tokens))  # unique, prefer kanji
 
     scores = []
     for name, content in docs:
         text = (content or "").lower()
-        # count keyword occurrences
-        count = sum(text.count(tok) for tok in query.split())
-        # small boost for title match
+        # count occurrences for each token (fallback to substring matching)
+        count = 0
+        for tok in tokens:
+            if not tok:
+                continue
+            try:
+                count += text.count(tok)
+            except Exception:
+                pass
+        # also give small boost if query as a whole appears in name
         if query in name.lower():
             count += 2
         if count > 0:
             scores.append((count, name, content))
+
+    # If no scores found, try a relaxed substring search using the longest kanji/ascii token
+    if not scores and tokens:
+        longest = max(tokens, key=len)
+        for name, content in docs:
+            text = (content or "").lower()
+            if longest in text or longest in name.lower():
+                scores.append((1, name, content))
 
     scores.sort(reverse=True)
     results = [(name, content) for _, name, content in scores[:top_k]]
