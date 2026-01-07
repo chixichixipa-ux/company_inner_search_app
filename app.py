@@ -8,16 +8,37 @@ def _local_css():
     st.markdown(
         """
         <style>
-        .chat-box {max-width: 900px; margin: 0 auto;}
-        .user {background: #e6f2ff; padding:12px; border-radius:12px; margin:8px 0;}
-        .bot {background: #f1f8e9; padding:12px; border-radius:12px; margin:8px 0;}
-        .sidebar-note{background:#f3f4f6;border-left:4px solid #3b82f6;padding:10px;border-radius:6px;margin-bottom:8px}
-        .top-welcome{background:#e6ffed;border-left:6px solid #16a34a;padding:14px;border-radius:8px;margin-bottom:12px}
-        .top-tip{background:#fff7ed;border-left:6px solid #f59e0b;padding:12px;border-radius:8px;margin-bottom:18px}
-        .result-top{background:#e6ffed;border-left:6px solid #16a34a;padding:12px;border-radius:8px;margin-bottom:8px}
-        .candidate{background:#eef2ff;border-left:6px solid #3b82f6;padding:10px;border-radius:6px;margin:6px 0}
-        .input-row {display:flex; gap:8px; align-items:center}
-        .input-box {background:#f3f4f6;padding:12px;border-radius:8px;width:100%;}
+        /* overall chat layout */
+        .chat-box {max-width: 950px; margin: 0 auto;}
+        /* user / bot bubbles */
+        .user {background: linear-gradient(135deg,#fef3ff,#ede9fe); padding:12px; border-radius:18px; margin:10px 0; box-shadow:0 2px 6px rgba(0,0,0,0.05);}
+        .bot {background: linear-gradient(135deg,#f0fdf4,#ecfeff); padding:12px; border-radius:18px; margin:10px 0; box-shadow:0 2px 6px rgba(0,0,0,0.05);}
+        .sidebar-note{background:#fbfdff;border-left:6px solid #93c5fd;padding:12px;border-radius:10px;margin-bottom:12px}
+
+        /* top welcome / tip boxes */
+        .top-welcome{background:#f0fdf4;border-left:6px solid #34d399;padding:14px;border-radius:12px;margin-bottom:12px;color:#065f46}
+        .top-tip{background:#fffbeb;border-left:6px solid #f59e0b;padding:12px;border-radius:12px;margin-bottom:18px;color:#92400e}
+
+        /* search result boxes */
+        .result-top{background:linear-gradient(90deg,#ecfdf5,#f0f9ff);border-left:6px solid #10b981;padding:14px;border-radius:12px;margin-bottom:10px}
+        .candidate{background:linear-gradient(90deg,#eef2ff,#f8fafc);border-left:6px solid #60a5fa;padding:12px;border-radius:10px;margin:8px 0}
+
+        /* cute header */
+        .app-title {font-weight:800; letter-spacing:-0.02em}
+        .app-mascot {font-size:28px; margin-right:8px}
+
+        /* input and button styles */
+        .stButton>button, .stButton>div>button {background:linear-gradient(90deg,#f472b6,#f59e0b); color:white; border-radius:14px; padding:8px 14px; border:none}
+        .stButton>button:hover {filter:brightness(1.02)}
+        .stTextInput>div>div>input {border-radius:12px; padding:12px}
+
+        /* make info boxes softer */
+        .stInfo, .stSuccess, .stWarning {border-radius:12px}
+
+        /* small responsive tweaks */
+        @media (max-width:900px) {
+            .chat-box {padding:0 12px}
+        }
         </style>
         """,
         unsafe_allow_html=True,
