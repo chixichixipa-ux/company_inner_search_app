@@ -111,7 +111,10 @@ def _fallback_generate(query: str, matched_docs: List[Tuple[str, str]], purpose:
             return "関連する社内文書が見つかりませんでした。キーワードを変えて再検索してください。"
         return "回答を生成できませんでした。詳しく入力してください。"
 
-    summary_lines = [f"[{name}] の抜粋: {content[:300].replace('\n', ' ')}..." for name, content in matched_docs]
+    summary_lines = []
+    for name, content in matched_docs:
+        snippet = (content or "")[:300].replace("\n", " ")
+        summary_lines.append(f"[{name}] の抜粋: {snippet}...")
     return "\n\n".join(summary_lines)
 
 
