@@ -69,14 +69,32 @@ def main():
                 if isinstance(bot_content, dict) and bot_content.get("type") == "search_results":
                     st.markdown("<div class='bot'><b>bot:</b></div>", unsafe_allow_html=True)
                     st.markdown(f"**{bot_content.get('message')}**")
-                    for idx, r in enumerate(bot_content.get("results", [])):
-                        with st.expander(f"{r['name']} — {r['rel_path']}"):
-                            st.write(r['snippet'] + "...")
-                            safe = re.sub(r"[^0-9a-zA-Z_]", "_", r['name'])
-                            btn_key = f"show_{idx}_{safe}"
-                            if st.button(f"全文を表示: {r['name']}", key=btn_key):
-                                full = utils.get_full_document(r['name'])
-                                st.code(full, language=None)
+                    results = bot_content.get("results", [])
+                    if results:
+                        # Highlight the top result
+                        top = results[0]
+                        st.success(f"📄 参照候補: {top['rel_path']}")
+                        st.markdown(top['snippet'] + "...")
+
+                        # Show other candidates as selectable list
+                        if len(results) > 1:
+                            st.markdown("**その他、ファイルの候補:**")
+                            for i, r in enumerate(results[1:], start=1):
+                                st.info(f"📄 {r['rel_path']}")
+
+                        # Provide expanders for each result with snippet and full-text button
+                        for idx, r in enumerate(results):
+                            with st.expander(f"{r['name']} — {r['rel_path']}"):
+                                st.write(r['snippet'] + "...")
+                                safe = re.sub(r"[^0-9a-zA-Z_]", "_", r['name'])
+                                btn_key = f"show_{idx}_{safe}"
+                                if st.button(f"全文を表示: {r['name']}", key=btn_key):
+                                    full = utils.get_full_document(r['name'])
+                                    # render as code block for plain text, but attempt markdown if looks like markdown
+                                    if isinstance(full, str) and (full.strip().startswith("#") or "|" in full):
+                                        st.markdown(full)
+                                    else:
+                                        st.code(full, language=None)
                 else:
                     st.markdown(f"<div class='bot'><b>bot:</b> {bot_content}</div>", unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
