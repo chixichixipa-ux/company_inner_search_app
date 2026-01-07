@@ -71,16 +71,27 @@ def main():
                     st.markdown(f"**{bot_content.get('message')}**")
                     results = bot_content.get("results", [])
                     if results:
-                        # Highlight the top result
+                        # Highlight the top result with styled HTML box
                         top = results[0]
-                        st.success(f"📄 参照候補: {top['rel_path']}")
+                        box_html = f"""
+                        <div style='background:#e6ffed;border-left:6px solid #16a34a;padding:12px;border-radius:8px;margin-bottom:8px'>
+                          <div style='font-weight:600'>📄 入力内容に関する情報は、以下のファイルに含まれている可能性があります。</div>
+                          <div style='margin-top:8px;color:#065f46'>📁 {top['rel_path']}</div>
+                        </div>
+                        """
+                        st.markdown(box_html, unsafe_allow_html=True)
                         st.markdown(top['snippet'] + "...")
 
-                        # Show other candidates as selectable list
+                        # Show other candidates as blue boxes
                         if len(results) > 1:
                             st.markdown("**その他、ファイルの候補:**")
                             for i, r in enumerate(results[1:], start=1):
-                                st.info(f"📄 {r['rel_path']}")
+                                candidate_html = f"""
+                                <div style='background:#eef2ff;border-left:6px solid #3b82f6;padding:10px;border-radius:6px;margin:6px 0'>
+                                  <div>📄 {r['rel_path']}</div>
+                                </div>
+                                """
+                                st.markdown(candidate_html, unsafe_allow_html=True)
 
                         # Provide expanders for each result with snippet and full-text button
                         for idx, r in enumerate(results):
